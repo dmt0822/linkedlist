@@ -1,146 +1,239 @@
 package linkedlist
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-type Node struct {
-	val  int
-	next *Node
-}
-type MyLinkedList struct {
-	head *Node
-}
-
-func Constructor() MyLinkedList {
-	return MyLinkedList{}
+type ListNode struct {
+	Val  int
+	Next *ListNode
 }
 
-func (this *MyLinkedList) Get(targetIndex int) int {
+func New(val int, next *ListNode) *ListNode {
+	return &ListNode{val, next}
+}
+
+func Get(head *ListNode, targetIndex int) int {
 	if targetIndex < 0 {
 		return -1
 	}
 
-	currentNode := this.head
+	if head.IsEmpty() {
+		return -1
+	}
+
+	currentNode := head
 
 	for currentIndex := 0; currentIndex <= targetIndex; currentIndex++ {
-		if isEmptyNode(currentNode) {
+		if currentNode.IsEmpty() {
 			return -1
 		}
 		if currentIndex == targetIndex {
-			return currentNode.val
+			return currentNode.Val
 		}
 		if currentIndex == targetIndex-1 {
-			if currentNode.next != nil {
-				return currentNode.next.val
+			if currentNode.Next != nil {
+				return currentNode.Next.Val
 			}
 		}
-		if currentNode.next == nil {
+		if currentNode.Next == nil {
 			return -1
 		}
-		currentNode = currentNode.next
+		currentNode = currentNode.Next
 	}
 	return -1
 }
 
-func (this *MyLinkedList) AddAtHead(val int) {
-	if isEmptyNode(this.head) {
-		this.head = &Node{val, nil}
-		return
-	}
-
-	this.head = &Node{val, this.head}
+func AddAtHead(head *ListNode, val int) *ListNode {
+	return New(val, head)
 }
 
-func (this *MyLinkedList) AddAtTail(val int) {
-	this.add(val, this.head)
+func AddAtTail(head *ListNode, val int) *ListNode {
+	if head.IsEmpty() {
+		return &ListNode{val, nil}
+	}
+	currentNode := head
+	newNode := New(val, nil)
+
+	for currentNode != nil {
+		if currentNode.Next == nil {
+			currentNode.Next = newNode
+			break
+		}
+		currentNode = currentNode.Next
+	}
+	return head
 }
 
-func (this *MyLinkedList) add(val int, currentNode *Node) {
-	if isEmptyNode(currentNode) {
-		this.head = &Node{val, nil}
-		return
+func AddAtIndex(head *ListNode, targetIndex int, val int) *ListNode {
+	if head.IsEmpty() {
+		return New(val, nil)
 	}
 
-	if currentNode.next == nil {
-		currentNode.next = &Node{val, nil}
-		return
+	if targetIndex == 0 {
+		return New(val, head)
 	}
 
-	this.add(val, currentNode.next)
-}
-
-func isEmptyNode(node *Node) bool {
-	emptyNode := Node{}
-
-	return node == &emptyNode || node == nil
-}
-
-/** Add a node of value val before the index-th node in the linked list.
- * If index equals to the length of linked list, the node will be appended to the end of linked list.
- * If index is greater than the length, the node will not be inserted.
- */
-func (this *MyLinkedList) AddAtIndex(targetIndex int, val int) {
-	currentNode := this.head
-
-	if isEmptyNode(currentNode) {
-		this.head = &Node{val, nil}
-		return
-	}
+	newHead := head
+	currentNode := head
+	var previousNode *ListNode
 
 	for currentIndex := 0; currentIndex <= targetIndex; currentIndex++ {
+		if currentNode == nil {
+			return newHead
+		}
 		if currentIndex == targetIndex {
-			this.head = &Node{val, currentNode}
-		}
-		if currentIndex == targetIndex-1 {
-			currentNext := currentNode.next
-			newNode := &Node{val, currentNext}
-			currentNode.next = newNode
-			return
-		}
-		if currentNode.next == nil {
-			return
-		}
-		currentNode = currentNode.next
-	}
-}
-
-func (this *MyLinkedList) DeleteAtIndex(targetIndex int) {
-	currentNode := this.head
-
-	for currentIndex := 0; currentIndex <= targetIndex; currentIndex++ {
-		if isEmptyNode(currentNode) {
-			return
-		}
-		if currentNode.next == nil {
-			return
-		}
-		if currentIndex == targetIndex-1 {
-			if currentNode.next.next != nil {
-				currentNode.next = currentNode.next.next
-				return
+			newNode := New(val, currentNode)
+			if !(previousNode.IsEmpty()) {
+				previousNode.Next = newNode
 			}
+			return newHead
+		}
+		previousNode = currentNode
+		currentNode = currentNode.Next
+	}
+	return newHead
+}
 
-			currentNode.next = nil
-			return
+func DeleteAtIndex(head *ListNode, targetIndex int) *ListNode {
+	if head.IsEmpty() {
+		return head
+	}
+	currentNode := head
+	newHead := head
+	var previousNode *ListNode
+
+	for currentIndex := 0; currentIndex <= targetIndex; currentIndex++ {
+		if currentNode.IsEmpty() {
+			return newHead
 		}
 		if currentIndex == targetIndex {
-			this.head = currentNode.next
-			return
+			if !previousNode.IsEmpty() {
+				previousNode.Next = currentNode.Next
+			} else {
+				newHead = currentNode.Next
+			}
 		}
-		currentNode = currentNode.next
+		previousNode = currentNode
+		currentNode = currentNode.Next
 	}
+	return newHead
 }
 
-func (this *MyLinkedList) String() {
-	this.print(this.head)
+func RemoveNthFromEnd(head *ListNode, numFromEnd int) *ListNode {
+	fast := head
+	slow := head
+	delay := numFromEnd + 1
+	currentIndex := 0
+	newHead := head
+
+	for fast != nil {
+		fast = fast.Next
+		if currentIndex >= delay {
+			slow = slow.Next
+		}
+		currentIndex++
+		if fast == nil {
+			if currentIndex < delay {
+				newHead = slow.Next
+			} else if slow.Next != nil {
+				slow.Next = slow.Next.Next
+			} else {
+				slow.Next = nil
+			}
+		}
+	}
+
+	return newHead
 }
 
-func (this *MyLinkedList) print(node *Node) {
-	empty := &MyLinkedList{}
-	if node == empty.head {
-		return
+func ReverseList(head *ListNode) *ListNode {
+	if head.IsEmpty() || head.Next == nil {
+		return head
 	}
-	fmt.Println(node)
-	if node.next != empty.head {
-		this.print(node.next)
+	originalHead := head
+	currentHead := head
+	newHead := head.Next
+
+	for originalHead.Next != nil {
+		newHead = originalHead.Next
+		originalHead.Next = originalHead.Next.Next
+		newHead.Next = currentHead
+		currentHead = newHead
 	}
+
+	return newHead
+}
+
+func RemoveElements(head *ListNode, val int) *ListNode {
+	if head.IsEmpty() {
+		return head
+	}
+	var newHead, tailNode, nextNode *ListNode
+	currentNode := head
+	for currentNode != nil {
+		nextNode = currentNode.Next
+		if currentNode.Val != val {
+			currentNode.Next = nil
+			if newHead == nil {
+				newHead = currentNode
+			} else {
+				tailNode.Next = currentNode
+
+			}
+			tailNode = currentNode
+		}
+		currentNode = nextNode
+	}
+	return newHead
+}
+
+func OddEvenList(head *ListNode) *ListNode {
+	if head.IsEmpty() || head.Next == nil {
+		return head
+	}
+	var oddHead, oddTail, evenHead, evenTail, nextNode *ListNode
+	currentNode := head
+	index := 0
+	for currentNode != nil {
+		nextNode = currentNode.Next
+		if index == 0 || index%2 == 0 {
+			if evenHead == nil {
+				evenHead = currentNode
+				evenTail = evenHead
+			} else {
+				evenTail.Next = currentNode
+			}
+			evenTail = currentNode
+			evenTail.Next = nil
+		} else {
+			if oddHead == nil {
+				oddHead = currentNode
+				oddHead.Next = nil
+			} else {
+				oddTail.Next = currentNode
+			}
+			oddTail = currentNode
+			oddTail.Next = nil
+		}
+		currentNode = nextNode
+		index++
+	}
+
+	evenTail.Next = oddHead
+	return evenHead
+}
+
+func (l *ListNode) IsEmpty() bool {
+	return l == nil || l == &ListNode{}
+}
+
+func (l *ListNode) ToString() string {
+	out := ""
+	for l != nil {
+		out += fmt.Sprintf("%v ", l)
+		l = l.Next
+	}
+	return strings.Trim(out, " ")
 }
