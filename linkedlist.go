@@ -149,21 +149,16 @@ func RemoveNthFromEnd(head *ListNode, numFromEnd int) *ListNode {
 }
 
 func ReverseList(head *ListNode) *ListNode {
-	if head.IsEmpty() || head.Next == nil {
-		return head
-	}
-	originalHead := head
-	currentHead := head
-	newHead := head.Next
+	var previous *ListNode
 
-	for originalHead.Next != nil {
-		newHead = originalHead.Next
-		originalHead.Next = originalHead.Next.Next
-		newHead.Next = currentHead
-		currentHead = newHead
+	for head != nil {
+		next := head.Next
+		head.Next = previous
+		previous = head
+		head = next
 	}
 
-	return newHead
+	return previous
 }
 
 func RemoveElements(head *ListNode, val int) *ListNode {
